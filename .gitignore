@@ -13,3 +13,4 @@ MANIFEST
 secrets.py
 *.egg-info
 *.bkp
+airflow_dev/
