@@ -1,0 +1,90 @@
+In Airflow, a DAG – or a Directed Acyclic Graph – is a collection of all the tasks you want to run, organized in a way that reflects their relationships and dependencies.
+
+The important thing is that the DAG isn’t concerned with what its constituent tasks do; its job is to make sure that whatever they do happens at the right time, or in the right order, or with the right handling of any unexpected issues.
+
+Tasks
+  tasks do not communicate with each other
+  Tasks are generated when instantiating operator objects
+
+Pipeline
+  An Airflow pipeline is just a Python script that happens to define an Airflow DAG object.
+  A pipeline file needs to be put on the DAGs folder referenced in your airflow.cfg ( via dags_folder variable ; default is ~/airflow/dags)
+
+
+Test tasks individually
+  use "airflow test"
+  # command layout:airflow test dag_id task_id execution_date
+
+# testing print_date
+airflow test tutorial print_date 2015-06-01
+=> this will simulate the scheduler running your task or dag at a specific execution_date
+
+
+
+
+1- Describe your Dag with the list of tasks it should contain in a python file
+2- put the python file under /root/airflow/dags/
+3- the dag metadata will be decalred as an entry into the dag table
+
+# example with minimal2 dag
+
+
+table dag
+
+CREATE TABLE dag (
+        dag_id VARCHAR(250) NOT NULL,
+        is_paused BOOLEAN,
+        is_subdag BOOLEAN,
+        is_active BOOLEAN,
+        last_scheduler_run DATETIME,
+        last_pickled DATETIME,
+        last_expired DATETIME,
+        scheduler_lock BOOLEAN,
+        pickle_id INTEGER,
+        fileloc VARCHAR(2000),
+        owners VARCHAR(2000), description TEXT, default_view VARCHAR(25), schedule_interval TEXT,
+        PRIMARY KEY (dag_id),
+        CHECK (is_paused IN (0, 1)),
+        CHECK (is_subdag IN (0, 1)),
+        CHECK (is_active IN (0, 1)),
+        CHECK (scheduler_lock IN (0, 1))
+);
+
+select * from dag where dag_id="minimal2" ;
+
+dag_id|is_paused|is_subdag|is_active|last_scheduler_run|last_pickled|last_expired|scheduler_lock|pickle_id|fileloc|owners|description|default_view|schedule_interval
+minimal2|1|0|1|2019-04-23 12:34:10.569461|||||/root/airflow/dags/minimal.py|airflow|||"* 0/1 * * * *"
+
+=> by default, the dag is marked as not active (=is_paused=1), that means it is not yet considered by the scheduler for scheduling dagrungs.
+We can see that no dagrun is created with the id=minimal2 :
+select * from dag_run where dag_id="minimal2" ;
+id|dag_id|execution_date|state|run_id|external_trigger|conf|end_date|start_date
+# returns nothing
+
+
+3- the Airflow web server will query the metadata and display it through its UI
+4- to activate the dag, click on the toggle "ON"
+this will set the attribute is_paused=0 in the dag_run table entry with id=minimal2 
+
+select * from dag where dag_id="minimal2" ;
+dag_id|is_paused|is_subdag|is_active|last_scheduler_run|last_pickled|last_expired|scheduler_lock|pickle_id|fileloc|owners|description|default_view|schedule_interval
+minimal2|0|0|1|2019-04-23 13:12:33.836451|||||/root/airflow/dags/minimal.py|airflow|||"* 0/1 * * * *"
+
+
+# a taskinstance can be triggered depending on the return status of its previous scheduled taskinstance
+depends_on_past (boolean) when set to True, keeps a task from getting triggered if the previous schedule for the task hasn’t succeeded.
+
+
+
+Pitfalls: 
+if you change the 
+
+#####################################################################
+#####################################################################
+configuration.py =>
+- set if not existing the env variable:
+  AIRFLOW_HOME to a default directory path: ~/airflow
+  AIRFLOW_CONFIG to a default file path: /airflow.cfg
+- if configuration file AIRFLOW_CONFIG does not exist:
+  create it and populate it with a default configuration
+  load the configuration to a ConfigParser object

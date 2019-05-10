@@ -52,8 +52,8 @@ def mkdir_p(path):
 Setting AIRFLOW_HOME and AIRFLOW_CONFIG from environment variables, using
 "~/airflow" and "~/airflow/airflow.cfg" repectively as defaults.
 '''
-
 if 'AIRFLOW_HOME' not in os.environ:
+    # si la variable AIRFLOW_HOME ne fait deja pas partie des variables d'environnements, la specifier 
     AIRFLOW_HOME = os.path.expanduser('~/airflow')
 else:
     AIRFLOW_HOME = os.environ['AIRFLOW_HOME']

@@ -46,6 +46,7 @@ class DagBag(object):
             executor=DEFAULT_EXECUTOR,
             include_examples=True):
         if not dag_folder:
+            # get from the conf the var DAGS_FOLDER in serction 'core'
             dag_folder = conf.get('core', 'DAGS_FOLDER')
         logging.info("Filling up the DagBag from " + dag_folder)
         self.dag_folder = dag_folder
@@ -69,6 +70,7 @@ class DagBag(object):
             logging.error("File not found: " + filepath)
             return
         mod_name, file_ext = os.path.splitext(os.path.split(filepath)[-1])
+        # dttm contient la derniere date de modification du fichier filepath tel que vu par l'os
         dttm = datetime.fromtimestamp(os.path.getmtime(filepath))
 
         if file_ext != '.py':
@@ -92,6 +94,9 @@ class DagBag(object):
                     dag.dagbag = self
                     dag.full_filepath = filepath
                     self.dags[dag.dag_id] = dag
+                    ##locals() will return a dict of the local variable whithin the code scope
+                    ##expression  ** locals() means expand the returned dictionary into key=value pairs
+                    # 'Loaded DAG {dag}'.format(**locals()) wil print the value of a key named dag returned by **locals()
                     logging.info('Loaded DAG {dag}'.format(**locals()))
 
             self.file_last_changed[filepath] = dttm
